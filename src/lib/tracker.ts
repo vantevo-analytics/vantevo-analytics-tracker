@@ -151,9 +151,9 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         if (pushState) {
             window.history.pushState = function () {
                 pushState.apply(this, arguments);
-                trigger();
+                setTimeout(trigger, 0);
             }
-            window.addEventListener("popstate", trigger);
+            window.addEventListener("popstate",  setTimeout(trigger, 0));
         }
 
         if (!document.body) {

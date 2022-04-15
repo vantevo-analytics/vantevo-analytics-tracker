@@ -2,7 +2,7 @@
  
 **Vantevo Analytics** is the alternative platform to Google Analytics that respects privacy, because it does not need cookies not compliant with the GDPR. Easy to use, light and can be integrated into any website and back-end.
  
-For more information visit the website [vantevo.io](https://vantevo.io?utm_source=npm&utm_medium=vantevo-analytics-tracker).
+For more information visit the website [vantevo.io](https://vantevo.io).
  
 ## Installation
  
@@ -15,7 +15,7 @@ To start tracking page views and events, you need to initialize your tracker fir
 ```ts
 import VantevoAnalytics from "vantevo-analytics-tracker";
  
-const vantevo = VantevoAnalytics({
+const { vantevo } = VantevoAnalytics({
  excludePath: [],
  dev: false,
  hash: false,
@@ -27,31 +27,43 @@ These are the parameters available for the tracker settings, all fields are opti
  
 | Option      | Type      | Description                                                                                                                    | Default |
 | ----------- | --------- | ------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| excludePath | `array`  (Optional) | You can exclude one or more pages from the statistics, [settings](https://vantevo.io/docs/come-escludere-una-pagina-dalle-statistiche?utm_source=npm&utm_medium=vantevo-analytics-tracker)          | `[]`    |
+| excludePath | `array`  (Optional) | You can exclude one or more pages from the statistics, [settings](https://vantevo.io/docs/)          | `[]`    |
 | dev         | `boolean` (Optional)| Tracker will not send data to server, please check browser console to view request information.                              | `false` |
 | hash        | `boolean` (Optional)| Allows tracking based on URL hash changes.                                                            | `false` |
 | domain      | `string` (Optional)| Use this option when the script is installed on a different domain than the one entered on Vantevo Analytics. | `null`  |
  
-`VantevoAnalytics()` Returns the functions you can use to keep track of your events.
+`VantevoAnalytics()` returns the functions you can use to keep track of your events.
  
 - `vantevo()`: Page views monitoring, event management and goals.
  
 - `enableTracker()`: Allows you to track page views automatically, the script uses the `popstate` event to navigate the site.
  
 - `enableOutboundLink()`: Allows you to monitor all outbound links from your site automatically, the script uses the `click` and` auxclick` events.
+
+- `enableTrackFiles(extensions , saveExtension)`: It allows you to automatically monitor all files to be downloaded from your site. It allows you to automatically monitor all files to be downloaded from your site. The function has 2 parameters: `extensions`  and `saveExtension`.
+
+| Parametro      |  Type    |  Description |   Default  |
+| -------------- | ---------| ------------ | ---------- |
+| extensions     | `string` (required) | Extensions consists of a comma separated list of extensions, example: zip, mp4.avi, mp3. Whenever a user clicks on a link, the script checks if the file extension is in the list you entered in the parameter and sends a `File Download` event with the value `url`.| `null` |
+| saveExtension  | `boolean`|`saveExtension` allows you to save in the event detail together with the` url` also the name of the file extension as `meta_key` to get more information and statistics about your files to download.| `false` |
+The script uses the `click` and` auxclick` events.
  
-The script uses the `addEventListener ()` method for the `enableTracker ()` and `enableOutboundLink ()` functions, to remove the registered event listener each function will return a clean function `removeEventListener ()`:
+
+
+The script uses the `addEventListener ()` method for the `enableTracker`, `enableOutboundLink` and `enableTrackFiles` functions, to remove the registered event listener each function will return a clean function `removeEventListener()`:
  
 ```ts
 import VantevoAnalytics from "vantevo-analytics-tracker";
  
-const { enableTracker, enableOutboundLink } = VantevoAnalytics({...});
+const { enableTracker, enableOutboundLink, enableTrackFiles } = VantevoAnalytics({...});
  
 const cleanTracker = enableTracker();
 const cleanOutboundLink = enableOutboundLink();
+const cleanEnableTrackFiles = enableTrackFiles();
  
 cleanTracker();
 cleanOutboundLink();
+cleanEnableTrackFiles();
 ```
  
 ## Page view monitoring and event management
@@ -65,12 +77,12 @@ const { vantevo } = VantevoAnalytics({...});
  
 vantevo();
 /*** or ***/
-vantevo("pageview˙");
+vantevo("pageview");
 ```
  
 ### Pageview change pathname of url
  
-You can submit a custom pageview where you can change the `pathname` of the page. In the example below, the page URL is https://example.com/blog?page=2 with the `pathname=/blog` and the`page=2` parameter (the page = 2 parameter will be ignored, see [guide] (https://vantevo.io/docs/query-parameters)), using the `pageview` event with the` meta` parameter of type `{path:"/blog/page/2"}` , the script will save as page pathname: `/blog/page/2`
+You can submit a custom pageview where you can change the `pathname` of the page. In the example below, the page URL is https://example.com/blog?page=2 with the `pathname=/blog` and the`page=2` parameter (the page = 2 parameter will be ignored, see [guide](https://vantevo.io/docs)), using the `pageview` event with the` meta` parameter of type `{path:"/blog/page/2"}` , the script will save as page pathname: `/blog/page/2`
  
  
 ```ts
@@ -83,28 +95,20 @@ vantevo("pageview", { path: "/blog/page/2" }, () => {});
 
 ### Pageview change title page
 
-Vantevo utilizza `document.title` per avere il titolo completo della pagina, in questo esempio vedrai come puoi cambiare il titolo della pagina.
+Vantevo uses `document.title` to get the full title of the page, in this example you will see how you can change the page title.
  
 ```ts
-...
-import useVantevo from "react-vantevo";
-...
+import VantevoAnalytics from "vantevo-analytics-tracker";
  
-export default function Page(){
-   const { vantevo } = useVantevo();
+const { vantevo } = VantevoAnalytics({...});
  
-   useEffect(() => {
-       vantevo("pageview", { title: "New title of page" }, () => {});
-   },[]);
- 
-   return (...);
-}
+vantevo("pageview", { title: "New Title Page" }, () => {});
 ```
 
  
 ## Event
  
-An example of how to send an event with the name "Download" and with the information `meta_key = pdf` and` meta_value=presentation`, the `meta` parameter is a simple json.
+An example of how to send an event with the name "Download" and with the information `meta_key=pdf` and` meta_value=presentation`, the `meta` parameter is a simple json.
  
 Vantevo Analytics handles the `meta_key=duration`, the value of this field is of type` Number`. With the `duration` parameter it is possible to send a number (seconds) with the event that will be used to calculate the average duration of the event itself.
  

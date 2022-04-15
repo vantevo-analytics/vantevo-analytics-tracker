@@ -23,7 +23,8 @@ export default [
     plugins: [
       resolve(),
       commonjs(),
-      typescript({ tsconfig: "./tsconfig.json" }), uglify()
+      typescript({ tsconfig: "./tsconfig.json" }),
+      uglify()
     ],
   },
   {

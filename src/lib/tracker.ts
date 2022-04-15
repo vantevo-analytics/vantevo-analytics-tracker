@@ -23,9 +23,14 @@ export type VantevoEvent = (
     callback?: () => void
 ) => void;
 
+
 type CleanEvents = () => void;
 type EnableTracker = () => CleanEvents;
 type EnableOutboundLink = () => CleanEvents;
+type EnableTrackFiles = (
+    extensions?: string,
+    saveExtension?: boolean
+) => CleanEvents;
 
 
 const defaultValues = {
@@ -40,7 +45,9 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
     readonly vantevo: VantevoEvent;
     readonly enableTracker: EnableTracker;
     readonly enableOutboundLink: EnableOutboundLink;
+    readonly enableTrackFiles: EnableTrackFiles;
 } {
+
     var config = defaultValues;
     if (options) {
         config = { ...defaultValues, ...options };
@@ -48,13 +55,10 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
     const { dev, hash, excludePath, params, domain } = config;
 
     var ignore_message = "Ignores hit on localhost.";
-    var localFile = location.protocol === "file:";
-
 
     function localRegex(hostname) {
         return (/^localhost(.*)$|^127(\.[0-9]{1,3}){3}$/i.test(hostname))
     }
-
 
     function jsonToParameters(filters) {
         var paramters = Object.fromEntries(
@@ -71,21 +75,22 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         if (window.__phantomas || window._phantom || window.__nightmare || window.navigator.webdriver || window.Cypress) {
             return;
         }
+        var localFile = window.location.protocol === "file:";
 
         if (domain && (localRegex(domain) || localFile)) {
             return console.warn(ignore_message);
         }
-        
-        if (!domain && !dev && (localRegex(location.hostname) || localFile)) {
+
+        if (!domain && !dev && (localRegex(window.location.hostname) || localFile)) {
             return console.warn(ignore_message);
         }
 
-        if (excludePath.length > 0) {
+        if ((!event || event == "pageview") && excludePath.length > 0) {
             var asPath = window.location.pathname.split("?")[0];
-            var reg = new RegExp('^' + asPath.trim().replace(/\*\*/g, '.*').replace(/([^\.])\*/g, '$1[^\\s\/]*') + '\/?$');
             for (var i = 0; i < excludePath.length; i++) {
-                if (reg.test(excludePath[i])) {
-                    return console.warn('exclude page.');
+                var reg = new RegExp('^' + excludePath[i].trim().replace(/\*\*/g, '.*').replace(/([^\.])\*/g, '$1[^\\s\/]*') + '\/?$');
+                if (reg.test(asPath)) {
+                    return dev ? console.warn('Exclude page') : false;
                 }
             }
         }
@@ -104,11 +109,16 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
             obj_params = { ...obj_params, path: meta["path"] }
         }
 
+        let _t: any = document.title;
+        if ((!event || event == "pageview") && meta && meta.title) {
+            _t = meta.title;
+        }
+
         str_params = jsonToParameters(obj_params)
         var payload = {
             ts: new Date().getTime(),
-            url: location.href,
-            t: document.title,
+            url: window.location.href,
+            t: _t,
             ref: document.referrer,
             w: screen.width,
             h: screen.height,
@@ -137,10 +147,10 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
     // Window addEventListener trigger
     var lastPage;
     function trigger() {
-        if (!hash && (lastPage === location.pathname)) {
+        if (!hash && (lastPage === window.location.pathname)) {
             return;
         }
-        lastPage = location.pathname
+        lastPage = window.location.pathname
         vantevo("pageview", {}, null);
     }
 
@@ -153,7 +163,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
                 pushState.apply(this, arguments);
                 setTimeout(trigger, 0);
             }
-            window.addEventListener("popstate",  setTimeout(trigger, 0));
+            window.addEventListener("popstate", () => { setTimeout(trigger, 0) });
         }
 
         if (!document.body) {
@@ -183,17 +193,65 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         ) {
             link = link.parentNode;
         }
-        if (link && link.href && link.host && link.host !== location.host) {
+
+        if (link && link.href && link.host && link.host !== window.location.host) {
             if (middle || click) {
-                event('Outbound Link', { url: link.href }, null);
+                vantevo('Outbound Link', { url: link.href }, null);
             }
             if (!link.target || link.target.match(/^_(self|parent|top)$/i)) {
                 if (!(event.ctrlKey || event.metaKey || event.shiftKey) && click) {
                     setTimeout(function () {
-                        location.href = link.href;
+                        window.location.href = link.href;
                     }, 150);
                     event.preventDefault();
                 }
+            }
+        }
+    }
+
+    // Tracking Files
+    function triggerTrackerFiles(event, extension, saveExtension) {
+        var link = event.target;
+        var middle = event.type == 'auxclick' && event.which == 2;
+        var click = event.type == 'click';
+        while (
+            link &&
+            (typeof link.tagName == 'undefined' ||
+                link.tagName.toLowerCase() != 'a' ||
+                !link.href)
+        ) {
+            link = link.parentNode;
+        }
+        var entry = false;
+        if (link && link.href) {
+            var list = [];
+            if (extension) {
+                list = extension.replace(/\s/g, '').split(",");
+            }
+   
+            if ((middle || click) && list.length > 0) {
+                var fileExtension = link.href.split(".").pop();
+                var existExtension = list.some(function (ext) {
+                    return ext == fileExtension
+                });
+
+                if (existExtension) {
+                    var _params = { url: link.href };
+                    if (saveExtension) {
+                        _params["extension"] = fileExtension
+                    }
+                    vantevo('File Download', _params, null);
+                    entry = true;
+                }
+
+            }
+        }
+        if (entry && (!link.target || link.target.match(/^_(self|parent|top)$/i))) {
+            if (!(event.ctrlKey || event.metaKey || event.shiftKey) && click) {
+                setTimeout(function () {
+                    window.location.href = link.href;
+                }, 150);
+                event.preventDefault();
             }
         }
     }
@@ -208,9 +266,20 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         };
     }
 
+    const enableTrackFiles: EnableTrackFiles = (extensions = "", saveExtension = false) => {
+        window.addEventListener('click', (event) => { triggerTrackerFiles(event, extensions, saveExtension) });
+        window.addEventListener('auxclick', (event) => { triggerTrackerFiles(event, extensions, saveExtension) });
+
+        return function cleanEvents() {
+            window.removeEventListener('click', (event) => { triggerTrackerFiles(event, extensions, saveExtension) });
+            window.removeEventListener('auxclick', (event) => { triggerTrackerFiles(event, extensions, saveExtension) });
+        };
+    }
+
     return {
         vantevo,
         enableTracker,
+        enableTrackFiles,
         enableOutboundLink
     };
 }

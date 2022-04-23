@@ -15,12 +15,12 @@ export declare type VantevoOptions = {
 export declare type VantevoEvent = (event?: string, meta?: VantevoMeta, callback?: () => void) => void;
 declare type CleanEvents = () => void;
 declare type EnableTracker = () => CleanEvents;
-declare type EnableOutboundLink = () => CleanEvents;
+declare type EnableOutboundLinks = () => CleanEvents;
 declare type EnableTrackFiles = (extensions?: string, saveExtension?: boolean) => CleanEvents;
 export default function VantevoAnalytics(options?: VantevoOptions): {
     readonly vantevo: VantevoEvent;
     readonly enableTracker: EnableTracker;
-    readonly enableOutboundLink: EnableOutboundLink;
+    readonly enableOutboundLinks: EnableOutboundLinks;
     readonly enableTrackFiles: EnableTrackFiles;
 };
 export {};

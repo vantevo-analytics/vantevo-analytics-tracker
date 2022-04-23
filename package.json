@@ -1,6 +1,6 @@
 {
   "name": "vantevo-analytics-tracker",
-  "version": "1.0.1-beta.8",
+  "version": "1.0.1-beta.10",
   "description": "Official script for Vantevo Analytics.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

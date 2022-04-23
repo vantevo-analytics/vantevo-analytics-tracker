@@ -38,31 +38,31 @@ These are the parameters available for the tracker settings, all fields are opti
  
 - `enableTracker()`: Allows you to track page views automatically, the script uses the `popstate` event to navigate the site.
  
-- `enableOutboundLink()`: Allows you to monitor all outbound links from your site automatically, the script uses the `click` and` auxclick` events.
+- `enableOutboundLinks()`: Allows you to monitor all outbound links from your site automatically, the script uses the `click` and` auxclick` events.
 
-- `enableTrackFiles(extensions , saveExtension)`: It allows you to automatically monitor all files to be downloaded from your site. It allows you to automatically monitor all files to be downloaded from your site. The function has 2 parameters: `extensions`  and `saveExtension`.
+- `enableTrackFiles(extensions , saveExtension)`: It allows you to automatically monitor all files to be downloaded from your site. The function has 2 parameters: `extensions`  and `saveExtension`.
 
 | Parametro      |  Type    |  Description |   Default  |
 | -------------- | ---------| ------------ | ---------- |
-| extensions     | `string` (required) | Extensions consists of a comma separated list of extensions, example: zip, mp4.avi, mp3. Whenever a user clicks on a link, the script checks if the file extension is in the list you entered in the parameter and sends a `File Download` event with the value `url`.| `null` |
-| saveExtension  | `boolean`|`saveExtension` allows you to save in the event detail together with the` url` also the name of the file extension as `meta_key` to get more information and statistics about your files to download.| `false` |
+| extensions     | `string` (required) | `extensions` consists of a comma separated list of extensions, example: zip, mp4, avi, mp3. Whenever a user clicks on a link, the script checks if the file extension is in the list you entered in the parameter and sends a `File Download` event with the value `url`.| `null` |
+| saveExtension  | `boolean`|`saveExtension` allows you to save in the event detail together with the `url` also the name of the file extension as `meta_key` to get more information and statistics about your files to download.| `false` |
 The script uses the `click` and` auxclick` events.
  
 
 
-The script uses the `addEventListener ()` method for the `enableTracker`, `enableOutboundLink` and `enableTrackFiles` functions, to remove the registered event listener each function will return a clean function `removeEventListener()`:
+The script uses the `addEventListener ()` method for the `enableTracker`, `enableOutboundLinks` and `enableTrackFiles` functions, to remove the registered event listener each function will return a clean function `removeEventListener()`:
  
 ```ts
 import VantevoAnalytics from "vantevo-analytics-tracker";
  
-const { enableTracker, enableOutboundLink, enableTrackFiles } = VantevoAnalytics({...});
+const { enableTracker, enableOutboundLinks, enableTrackFiles } = VantevoAnalytics({...});
  
 const cleanTracker = enableTracker();
-const cleanOutboundLink = enableOutboundLink();
-const cleanEnableTrackFiles = enableTrackFiles();
+const cleanOutboundLinks = enableOutboundLinks();
+const cleanEnableTrackFiles = enableTrackFiles("zip,mp4,avi", true);
  
 cleanTracker();
-cleanOutboundLink();
+cleanOutboundLinks();
 cleanEnableTrackFiles();
 ```
  
@@ -82,7 +82,7 @@ vantevo("pageview");
  
 ### Pageview change pathname of url
  
-You can submit a custom pageview where you can change the `pathname` of the page. In the example below, the page URL is https://example.com/blog?page=2 with the `pathname=/blog` and the`page=2` parameter (the page = 2 parameter will be ignored, see [guide](https://vantevo.io/docs)), using the `pageview` event with the` meta` parameter of type `{path:"/blog/page/2"}` , the script will save as page pathname: `/blog/page/2`
+You can submit a custom pageview where you can change the `pathname` of the page. In the example below, the page URL is https://example.com/blog?page=2 with the `pathname=/blog` and the`page=2` parameter (the page = 2 parameter will be ignored, see [guide](https://vantevo.io/docs)), using the `pageview` event with the` meta` parameter of type `{path:"/blog/page/2"}` , the script will save as page pathname: `/blog/page/2`.
  
  
 ```ts

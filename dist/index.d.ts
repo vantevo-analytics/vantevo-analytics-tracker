@@ -12,6 +12,7 @@ declare type VantevoOptions = {
     "domain"?: string;
     "params"?: ParamsContext;
 };
+
 declare type VantevoEvent = (event?: string, meta?: VantevoMeta, callback?: () => void) => void;
 declare type CleanEvents = () => void;
 declare type EnableTracker = () => CleanEvents;

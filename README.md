@@ -18,8 +18,7 @@ import VantevoAnalytics from "vantevo-analytics-tracker";
 const { vantevo } = VantevoAnalytics({
  excludePath: [],
  dev: false,
- hash: false,
- domain: null
+ hash: false
 });
 ```
  
@@ -30,7 +29,6 @@ These are the parameters available for the tracker settings, all fields are opti
 | excludePath | `array`  (Optional) | You can exclude one or more pages from the statistics, [settings](https://vantevo.io/docs/)          | `[]`    |
 | dev         | `boolean` (Optional)| Tracker will not send data to server, please check browser console to view request information.                              | `false` |
 | hash        | `boolean` (Optional)| Allows tracking based on URL hash changes.                                                            | `false` |
-| domain      | `string` (Optional)| Use this option when the script is installed on a different domain than the one entered on Vantevo Analytics. | `null`  |
  
 `VantevoAnalytics()` returns the functions you can use to keep track of your events.
  

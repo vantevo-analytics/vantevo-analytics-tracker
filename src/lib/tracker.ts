@@ -194,9 +194,10 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         ) {
             link = link.parentNode;
         }
-        var excludeOutbound = link.hasAttribute(exclude_param + "outbound-link");
-        if (link && link.href && link.host && !excludeOutbound && link.host !== window.location.host) {
-            if (middle || click) {
+
+        if (link && link.href && link.host && link.host !== window.location.host) {
+            var excludeOutbound = link.hasAttribute(exclude_param + "outbound-link");
+            if ((middle || click) && !excludeOutbound) {
                 vantevo('Outbound Link', { url: link.href }, null);
             }
             if (!link.target || link.target.match(/^_(self|parent|top)$/i)) {
@@ -238,31 +239,32 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
                 link = link.parentNode;
             }
             var entry = false;
-            
-            var excludeTrack = link.hasAttribute(exclude_param + "track-file");
-            if (link && link.href && !excludeTrack) {
+            if (link && link.href) {
+                var excludeTrack = link.hasAttribute(exclude_param + "track-file");
+                entry = true;
                 var list = [];
-                if (extensions) {
-                    list = extensions.replace(/\s/g, '').split(",");
-                }
-
-                if ((middle || click) && list.length > 0) {
-                    var fileExtension = link.href.split(".").pop();
-                    var existExtension = list.some(function (ext) {
-                        return ext == fileExtension
-                    });
-
-                    if (existExtension) {
-                        var _params = { url: link.href };
-                        if (saveExtension) {
-                            _params["extension"] = fileExtension
-                        }
-                        vantevo('File Download', _params, null);
-                        entry = true;
+                if (!excludeTrack) {
+                    if (extensions) {
+                        list = extensions.replace(/\s/g, '').split(",");
                     }
+                    if ((middle || click) && list.length > 0) {
+                        var fileExtension = link.href.split(".").pop();
+                        var existExtension = list.some(function (ext) {
+                            return ext == fileExtension
+                        });
 
+                        if (existExtension) {
+                            var _params = { url: link.href };
+                            if (saveExtension) {
+                                _params["extension"] = fileExtension
+                            }
+                            vantevo('File Download', _params, null);
+
+                        }
+                    }
                 }
             }
+
             if (entry && (!link.target || link.target.match(/^_(self|parent|top)$/i))) {
                 if (!(event.ctrlKey || event.metaKey || event.shiftKey) && click) {
                     setTimeout(function () {

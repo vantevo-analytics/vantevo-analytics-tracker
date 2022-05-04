@@ -1,6 +1,6 @@
 {
   "name": "vantevo-analytics-tracker",
-  "version": "1.0.1-beta.11",
+  "version": "1.0.1-beta.12",
   "description": "Official script for Vantevo Analytics.",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,7 +11,7 @@
   },
   "author": "Vantevo Analytics",
   "license": "MIT",
-  "repository": "https://github.com/vantevo/vantevo-analytics-tracker",
+  "repository": "https://github.com/vantevo-analytics/vantevo-analytics-tracker",
   "keywords": [
     "tracker",
     "vantevo",  

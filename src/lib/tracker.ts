@@ -239,7 +239,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
             }
             var entry = false;
             
-            var excludeTrack = link.hasAttribute(exclude_param + "track");
+            var excludeTrack = link.hasAttribute(exclude_param + "track-file");
             if (link && link.href && !excludeTrack) {
                 var list = [];
                 if (extensions) {

@@ -16,9 +16,10 @@ To start tracking page views and events, you need to initialize your tracker fir
 import VantevoAnalytics from "vantevo-analytics-tracker";
  
 const { vantevo } = VantevoAnalytics({
- excludePath: [],
- dev: false,
- hash: false
+ "excludePath": [],
+ "dev": false,
+ "hash": false,
+ "domain": null
 });
 ```
  
@@ -29,6 +30,8 @@ These are the parameters available for the tracker settings, all fields are opti
 | excludePath | `array`  (Optional) | You can exclude one or more pages from the statistics, [settings](https://vantevo.io/docs/)          | `[]`    |
 | dev         | `boolean` (Optional)| Tracker will not send data to server, please check browser console to view request information.                              | `false` |
 | hash        | `boolean` (Optional)| Allows tracking based on URL hash changes.                                                            | `false` |
+| domain      | `string` (Optional)| Use this option when the script is installed on a different domain than the one entered on Vantevo Analytics. | `null`  |
+
  
 `VantevoAnalytics()` returns the functions you can use to keep track of your events.
  
@@ -43,9 +46,8 @@ These are the parameters available for the tracker settings, all fields are opti
 | Parametro      |  Type    |  Description |   Default  |
 | -------------- | ---------| ------------ | ---------- |
 | extensions     | `string` (required) | `extensions` consists of a comma separated list of extensions, example: zip, mp4, avi, mp3. Whenever a user clicks on a link, the script checks if the file extension is in the list you entered in the parameter and sends a `File Download` event with the value `url`.| `null` |
-| saveExtension  | `boolean`|`saveExtension` allows you to save in the event detail together with the `url` also the name of the file extension as `meta_key` to get more information and statistics about your files to download.| `false` |
+| saveExtension  | `boolean` (optional) |`saveExtension` allows you to save in the event detail together with the `url` also the name of the file extension as `meta_key` to get more information and statistics about your files to download.| `false` |
 The script uses the `click` and` auxclick` events.
- 
 
 
 The script uses the `addEventListener ()` method for the `enableTracker`, `enableOutboundLinks` and `enableTrackFiles` functions, to remove the registered event listener each function will return a clean function `removeEventListener()`:
@@ -67,7 +69,9 @@ cleanEnableTrackFiles();
 ## Page view monitoring and event management
  
 ### Simple Pageview
+
 Submit a pageview using `location.href` as the request URL and` document.title` for the page title.
+
 ```ts
 import VantevoAnalytics from "vantevo-analytics-tracker";
  
@@ -108,7 +112,7 @@ vantevo("pageview", { title: "New Title Page" }, () => {});
  
 An example of how to send an event with the name "Download" and with the information `meta_key=pdf` and` meta_value=presentation`, the `meta` parameter is a simple json.
  
-Vantevo Analytics handles the `meta_key=duration`, the value of this field is of type` Number`. With the `duration` parameter it is possible to send a number (seconds) with the event that will be used to calculate the average duration of the event itself.
+Vantevo Analytics handles the `meta_key=duration`, the value of this field is of type `Number`. With the `duration` parameter it is possible to send a number (seconds) with the event that will be used to calculate the average duration of the event itself.
  
 ```ts
 import VantevoAnalytics from "vantevo-analytics-tracker";

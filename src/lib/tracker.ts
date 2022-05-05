@@ -28,7 +28,7 @@ type CleanEvents = () => void;
 type EnableTracker = () => CleanEvents;
 type EnableOutboundLinks = () => CleanEvents;
 type EnableTrackFiles = (
-    extensions?: string,
+    extensions: string,
     saveExtension?: boolean
 ) => CleanEvents;
 

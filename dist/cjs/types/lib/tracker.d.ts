@@ -16,7 +16,7 @@ export declare type VantevoEvent = (event?: string, meta?: VantevoMeta, callback
 declare type CleanEvents = () => void;
 declare type EnableTracker = () => CleanEvents;
 declare type EnableOutboundLinks = () => CleanEvents;
-declare type EnableTrackFiles = (extensions?: string, saveExtension?: boolean) => CleanEvents;
+declare type EnableTrackFiles = (extensions: string, saveExtension?: boolean) => CleanEvents;
 export default function VantevoAnalytics(options?: VantevoOptions): {
     readonly vantevo: VantevoEvent;
     readonly enableTracker: EnableTracker;

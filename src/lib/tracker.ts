@@ -241,7 +241,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
             var entry = false;
             if (link && link.href) {
                 var excludeTrack = link.hasAttribute(exclude_param + "track-file");
-                entry = true;
+          
                 var list = [];
                 if (!excludeTrack) {
                     if (extensions) {
@@ -258,8 +258,8 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
                             if (saveExtension) {
                                 _params["extension"] = fileExtension
                             }
+                            entry = true;
                             vantevo('File Download', _params, null);
-
                         }
                     }
                 }

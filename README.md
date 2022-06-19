@@ -1,4 +1,4 @@
-# The analysis of your website, but simpler
+# The analytics of your website, but simpler
  
 **Vantevo Analytics** is the alternative platform to Google Analytics that respects privacy, because it does not need cookies not compliant with the GDPR. Easy to use, light and can be integrated into any website and back-end.
  
@@ -30,7 +30,7 @@ These are the parameters available for the tracker settings, all fields are opti
 | excludePath | `array`  (Optional) | You can exclude one or more pages from the statistics, [settings](https://vantevo.io/docs/)          | `[]`    |
 | dev         | `boolean` (Optional)| Tracker will not send data to server, please check browser console to view request information.                              | `false` |
 | hash        | `boolean` (Optional)| Allows tracking based on URL hash changes.                                                            | `false` |
-| domain      | `string` (Optional)| Use this option when the script is installed on a different domain than the one entered on Vantevo Analytics. | `null`  |
+| domain      | `string` (Optional)| Use this option when the script is installed on a different domain than the one entered on Vantevo Analytics. To use this function remember to authorize the domain to be able to save the statistics, for more information [read more](https://vantevo.io/docs/domain-settings/information#authorized-domains).  | `null`  |
 
  
 `VantevoAnalytics()` returns the functions you can use to keep track of your events.

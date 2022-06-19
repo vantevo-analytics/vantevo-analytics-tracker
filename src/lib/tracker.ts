@@ -55,7 +55,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
     const { dev, hash, excludePath, params, domain } = config;
 
     var ignore_message = "Ignores hit on localhost.";
-    var exclude_param = "data-vantevo-exclude-";
+    var tag_param = "data-vantevo-";
 
 
     function localRegex(hostname) {
@@ -72,6 +72,18 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
             })
             .join('&');
     }
+
+    function getAttributes(link) {
+        var list = {};
+        for (let i = 0; i < link.attributes.length; i++) {
+            var att = link.attributes[i];
+            if (att.nodeName && att.nodeName.toLowerCase().indexOf(tag_param) == 0) {
+                list[att.nodeName.toString().replace(tag_param, "")] = att.textContent || "1"
+            }
+        }
+        return list;
+    }
+
 
     const vantevo: VantevoEvent = (event, meta = {}, callback) => {
         if (window.__phantomas || window._phantom || window.__nightmare || window.navigator.webdriver || window.Cypress) {
@@ -156,6 +168,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         vantevo("pageview", {}, null);
     }
 
+
     //Enable Automatic Tracker
     const enableTracker: EnableTracker = () => {
         const pushState = window.history.pushState;
@@ -196,9 +209,11 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         }
 
         if (link && link.href && link.host && link.host !== window.location.host) {
-            var excludeOutbound = link.hasAttribute(exclude_param + "outbound-link");
+            var excludeOutbound = link.hasAttribute(tag_param + "exclude-outbound-link");
             if ((middle || click) && !excludeOutbound) {
-                vantevo('Outbound Link', { url: link.href }, null);
+                var _params = getAttributes(link);
+                _params["url"] = link.href;
+                vantevo('Outbound Link', _params, null);
             }
             if (!link.target || link.target.match(/^_(self|parent|top)$/i)) {
                 if (!(event.ctrlKey || event.metaKey || event.shiftKey) && click) {
@@ -222,6 +237,8 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         };
     }
 
+
+
     // Tracking Files
     const enableTrackFiles: EnableTrackFiles = (extensions = "", saveExtension = false) => {
 
@@ -240,13 +257,15 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
             }
             var entry = false;
             if (link && link.href) {
-                var excludeTrack = link.hasAttribute(exclude_param + "track-file");
-          
+                var excludeTrack = link.hasAttribute(tag_param + "exclude-track-file");
+
                 var list = [];
                 if (!excludeTrack) {
-                    if (extensions) {
+                    
+                    if (extensions && typeof extensions === "string") {
                         list = extensions.replace(/\s/g, '').split(",");
                     }
+
                     if ((middle || click) && list.length > 0) {
                         var fileExtension = link.href.split(".").pop();
                         var existExtension = list.some(function (ext) {
@@ -254,11 +273,12 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
                         });
 
                         if (existExtension) {
-                            var _params = { url: link.href };
-                            if (saveExtension) {
-                                _params["extension"] = fileExtension
-                            }
                             entry = true;
+                            var _params = getAttributes(link);
+                            _params["url"] = link.href;
+                            if (saveExtension || _params["save-extension"]) {
+                                _params["extension"] = fileExtension;
+                            }
                             vantevo('File Download', _params, null);
                         }
                     }

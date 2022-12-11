@@ -14,6 +14,8 @@ export type VantevoOptions = {
     "dev"?: boolean;
     "hash"?: boolean;
     "domain"?: string;
+    "proxyServer"?: string;
+    "proxyServerEcommerce"?: string;
     "params"?: ParamsContext;
 };
 
@@ -23,6 +25,40 @@ export type VantevoEvent = (
     callback?: () => void
 ) => void;
 
+export type VantevoEcommerceItems = {
+    "item_id": string;
+    "item_name": string;
+    "currency"?: string;
+    "quantity"?: number;
+    "price"?: number;
+    "discount"?: number;
+    "position"?: number;
+    "brand"?: string;
+    "category_1"?: string;
+    "category_2"?: string;
+    "category_3"?: string;
+    "category_4"?: string;
+    "category_5"?: string;
+    "variant_1"?: string;
+    "variant_2"?: string;
+    "variant_3"?: string;
+};
+
+export type VantevoEcommerceValues = {
+    "total"?: number,
+    "coupon"?: string,
+    "coupon_value"?: number,
+    "payment_type"?: number,
+    "shipping_method"?: string,
+    "items": VantevoEcommerceItems
+
+};
+
+export type VantevoEcommerce = (
+    event?: string,
+    values?: VantevoEcommerceValues,
+    callback?: () => void
+) => void;
 
 type CleanEvents = () => void;
 type EnableTracker = () => CleanEvents;
@@ -38,11 +74,14 @@ const defaultValues = {
     "dev": false,
     "hash": false,
     "domain": null,
-    "params": {}
+    "params": {},
+    "proxyServer": "https://api.vantevo.io/event",
+    "proxyServerEcommerce": "https://api.vantevo.io/event-ecommerce"
 }
 
 export default function VantevoAnalytics(options?: VantevoOptions): {
     readonly vantevo: VantevoEvent;
+    readonly trackEcommerce: VantevoEcommerce;
     readonly enableTracker: EnableTracker;
     readonly enableOutboundLinks: EnableOutboundLinks;
     readonly enableTrackFiles: EnableTrackFiles;
@@ -52,7 +91,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
     if (options) {
         config = { ...defaultValues, ...options };
     }
-    const { dev, hash, excludePath, params, domain } = config;
+    const { dev, hash, excludePath, params, domain, proxyServer, proxyServerEcommerce } = config;
 
     var ignore_message = "Ignores hit on localhost.";
     var tag_param = "data-vantevo-";
@@ -84,9 +123,75 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         return list;
     }
 
+    function verifyBot() {
+        if (window.__phantomas || window._phantom || window.__nightmare || window.navigator.webdriver || window.Cypress) {
+            return true;
+        }
+        return false;
+    }
+
+
+    const trackEcommerce: VantevoEcommerce = (event, values, callback) => {
+        if (verifyBot()) {
+            return;
+        }
+
+        if (domain && (localRegex(domain))) {
+            return console.warn(ignore_message);
+        }
+
+        if (!domain && !dev && (localRegex(window.location.hostname))) {
+            return console.warn(ignore_message);
+        }
+
+        if (!event) {
+            return console.warn("Event name is required.");
+        }
+
+        if (!values.items || !Array.isArray(values.items) || values.items.length == 0) {
+            return console.warn("Items is required.");
+        }
+
+        var items = { ...values };;
+        ['items', 'total', 'coupon_value', 'payment_type', 'shipping_method'].forEach(e => delete items[e]);
+
+        var payload = {
+            ts: new Date().getTime(),
+            url: location.href,
+            t: document.title,
+            ref: document.referrer,
+            w: window.innerWidth,
+            h: window.innerHeight,
+            params: params,
+            event: event,
+            items: values.items,
+            total: values.total || 0,
+            coupon: values.coupon || "",
+            payment_type: values.payment_type || "",
+            shipping_method: values.shipping_method || "",
+            ...items
+        };
+
+        if (dev) {
+            console.log("HIT ECOMMERCE:", JSON.stringify(payload));
+            return callback && callback();
+        }
+
+        var endpoint = proxyServerEcommerce;
+        const req = new XMLHttpRequest();
+        req.open("POST", endpoint, true);
+        req.setRequestHeader("Content-Type", "application/json");
+        req.send(JSON.stringify(payload));
+        req.onreadystatechange = function () {
+            if (req.readyState == 4) {
+                return callback && callback();
+            }
+        }
+    }
+
 
     const vantevo: VantevoEvent = (event, meta = {}, callback) => {
-        if (window.__phantomas || window._phantom || window.__nightmare || window.navigator.webdriver || window.Cypress) {
+        if (verifyBot()) {
             return;
         }
         var localFile = window.location.protocol === "file:";
@@ -148,7 +253,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         }
 
         const req = new XMLHttpRequest();
-        req.open("POST", "https://api.vantevo.io/event");
+        req.open("POST", proxyServer);
         req.setRequestHeader("Content-Type", "text/plain");
         req.send(JSON.stringify(payload));
         req.onreadystatechange = function (req: any) {
@@ -226,7 +331,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
         }
     }
 
-
+    //Enable Outbound Links
     const enableOutboundLinks: EnableOutboundLinks = () => {
         window.addEventListener('click', triggerOutboundLinks);
         window.addEventListener('auxclick', triggerOutboundLinks);
@@ -236,8 +341,6 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
             window.removeEventListener('auxclick', triggerOutboundLinks);
         };
     }
-
-
 
     // Tracking Files
     const enableTrackFiles: EnableTrackFiles = (extensions = "", saveExtension = false) => {
@@ -261,7 +364,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
 
                 var list = [];
                 if (!excludeTrack) {
-                    
+
                     if (extensions && typeof extensions === "string") {
                         list = extensions.replace(/\s/g, '').split(",");
                     }
@@ -306,6 +409,7 @@ export default function VantevoAnalytics(options?: VantevoOptions): {
 
     return {
         vantevo,
+        trackEcommerce,
         enableTracker,
         enableTrackFiles,
         enableOutboundLinks
